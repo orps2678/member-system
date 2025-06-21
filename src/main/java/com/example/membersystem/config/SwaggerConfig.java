@@ -31,7 +31,7 @@ public class SwaggerConfig {
                 // 服務器配置
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8080/api")
+                                .url("http://localhost:8090/api")
                                 .description("開發環境"),
                         new Server()
                                 .url("https://your-domain.com/api")

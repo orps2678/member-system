@@ -86,13 +86,13 @@ mvn spring-boot:run
 ```
 
 ### 5. 訪問應用
-- **API 文檔**: http://localhost:8080/api/swagger-ui.html
-- **健康檢查**: http://localhost:8080/api/actuator/health
-- **測試端點**: http://localhost:8080/api/test/hello
+- **API 文檔**: http://localhost:8090/api/swagger-ui.html
+- **健康檢查**: http://localhost:8090/api/actuator/health
+- **測試端點**: http://localhost:8090/api/test/hello
 
 ## 📚 API 文檔
 
-應用啟動後，訪問 [Swagger UI](http://localhost:8080/api/swagger-ui.html) 查看完整的 API 文檔。
+應用啟動後，訪問 [Swagger UI](http://localhost:8090/api/swagger-ui.html) 查看完整的 API 文檔。
 
 ### 主要 API 端點
 
