@@ -1,0 +1,123 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: member-system
+
+  # 開發環境配置
+  profiles:
+    active: dev
+
+  # 資料庫配置
+  datasource:
+    url: jdbc:mysql://localhost:13306/member_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true
+    username: member_user
+    password: member_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # 連接池配置 (HikariCP - Spring Boot 預設)
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: MemberSystemHikariCP
+
+  # Redis 配置 (後續配置)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+# MyBatis Plus 配置
+mybatis-plus:
+  # 配置
+  configuration:
+    # 開啟駝峰命名轉換
+    map-underscore-to-camel-case: true
+    # 開啟 SQL 日誌
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 設置超時時間
+    default-statement-timeout: 30
+
+  # 全域配置
+  global-config:
+    db-config:
+      # 主鍵類型 (AUTO 為自增)
+      id-type: auto
+      # 邏輯刪除字段
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # 插入策略：非空字段才插入
+      insert-strategy: not_empty
+      # 更新策略：非空字段才更新
+      update-strategy: not_empty
+
+  # Mapper XML 文件位置
+  mapper-locations: classpath*:mapper/**/*.xml
+  # 實體類別名包路徑
+  type-aliases-package: com.example.membersystem.entity
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+  # 路徑匹配
+  paths-to-match:
+    - /test/**
+    - /auth/**
+    - /user/**
+    - /role/**
+    - /permission/**
+
+# 日誌配置
+logging:
+  level:
+    com.example.membersystem: debug
+    # MyBatis SQL 日誌
+    com.example.membersystem.mapper: debug
+    # Spring Security 日誌 (初期開啟，後續可關閉)
+    org.springframework.security: info
+    # 異常處理器日誌
+    com.example.membersystem.exception.GlobalExceptionHandler: warn
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+  # 日誌文件配置
+  file:
+    name: logs/member-system.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+
+# 管理端點配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
