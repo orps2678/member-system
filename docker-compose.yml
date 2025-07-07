@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Redis 快取服務（準備就緒，等待啟用）
+  redis:
+    image: redis:7-alpine
+    container_name: member-system-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - member-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 10s
+      retries: 5
+      interval: 10s
+
+  # Spring Boot 應用程式
+  member-system:
+    image: member-system:latest
+    container_name: member-system-app
+    environment:
+      # 連接到主機上的 MySQL（透過 host.docker.internal）
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:13306/member_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: member_user
+      SPRING_DATASOURCE_PASSWORD: member_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+
+      # Spring 配置
+      SPRING_PROFILES_ACTIVE: dev
+
+      # 應用程式配置
+      SERVER_PORT: 8081
+      SERVER_SERVLET_CONTEXT_PATH: /api
+
+      # Redis 配置（準備就緒，等待啟用）
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      # 暫時禁用 Redis 自動配置（需要時移除此行）
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+    ports:
+      - "8081:8081"
+    networks:
+      - member-network
+    restart: unless-stopped
+    # 確保日誌目錄存在
+    volumes:
+      - app_logs:/app/logs
+
+# 網路定義
+networks:
+  member-network:
+    driver: bridge
+
+# 資料持久化
+volumes:
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
