@@ -6,7 +6,7 @@ pipeline {
         // Docker 映像檔相關
         IMAGE_NAME = 'member-system'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        DOCKER_REGISTRY = 'localhost' // 可以改為 Harbor 或其他 registry
+        DOCKER_REGISTRY = 'localhost'
 
         // 應用程式相關
         APP_NAME = 'member-system-app'
@@ -20,12 +20,10 @@ pipeline {
     triggers {
         // GitHub webhook 觸發
         githubPush()
-        // 或者定時觸發（可選）
-        // cron('H/15 * * * *') // 每15分鐘檢查一次
     }
 
     stages {
-        stage('📋 Checkout') {
+        stage('Checkout') {
             steps {
                 echo '正在拉取程式碼...'
                 // Git checkout（Jenkins 會自動處理）
@@ -47,7 +45,7 @@ pipeline {
             }
         }
 
-        stage('🔧 Environment Check') {
+        stage('Environment Check') {
             steps {
                 echo '檢查建置環境...'
                 sh '''
@@ -65,7 +63,7 @@ pipeline {
             }
         }
 
-        stage('🧪 Test & Build') {
+        stage('Test & Build') {
             steps {
                 echo '執行測試和編譯...'
                 sh '''
@@ -92,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('🐳 Docker Build') {
+        stage('Docker Build') {
             steps {
                 echo '建立 Docker 映像檔...'
                 script {
@@ -111,16 +109,15 @@ pipeline {
             }
         }
 
-        stage('🔍 Security & Quality Check') {
+        stage('Security & Quality Check') {
             parallel {
-                stage('🛡️ Docker Security Scan') {
+                stage('Docker Security Scan') {
                     steps {
                         echo '執行 Docker 映像檔安全掃描...'
                         script {
                             try {
                                 // Docker 安全掃描（如果有安裝）
-                                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                                    aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} || echo '安全掃描工具未安裝，跳過'"
+                                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} || echo '安全掃描工具未安裝，跳過'"
                             } catch (Exception e) {
                                 echo "安全掃描跳過: ${e.getMessage()}"
                             }
@@ -128,7 +125,7 @@ pipeline {
                     }
                 }
 
-                stage('📊 Code Quality') {
+                stage('Code Quality') {
                     steps {
                         echo '程式碼品質檢查...'
                         // 可以整合 SonarQube 或其他工具
@@ -138,7 +135,7 @@ pipeline {
             }
         }
 
-        stage('🚀 Deploy') {
+        stage('Deploy') {
             steps {
                 echo '部署到容器環境...'
                 script {
@@ -167,7 +164,7 @@ pipeline {
             }
         }
 
-        stage('✅ Health Check') {
+        stage('Health Check') {
             steps {
                 echo '執行健康檢查...'
                 script {
@@ -185,22 +182,22 @@ pipeline {
                                 curl -f http://localhost:${APP_PORT}/api/actuator/health
                             """
                             healthCheckPassed = true
-                            echo "✅ 健康檢查通過！"
+                            echo "健康檢查通過！"
                         } catch (Exception e) {
                             retryCount++
-                            echo "⏳ 健康檢查失敗，重試 ${retryCount}/${maxRetries}..."
+                            echo "健康檢查失敗，重試 ${retryCount}/${maxRetries}..."
                             sleep(time: 10, unit: 'SECONDS')
                         }
                     }
 
                     if (!healthCheckPassed) {
-                        error "❌ 健康檢查失敗！應用程式可能無法正常啟動。"
+                        error "健康檢查失敗！應用程式可能無法正常啟動。"
                     }
                 }
             }
         }
 
-        stage('🧹 Cleanup') {
+        stage('Cleanup') {
             steps {
                 echo '清理舊的映像檔...'
                 script {
@@ -220,36 +217,38 @@ pipeline {
     post {
         always {
             echo '=== 建置完成 ==='
-            // 清理工作空間（可選）
-            // cleanWs()
         }
 
         success {
-            echo '🎉 建置和部署成功！'
-            // 可以發送成功通知
+            echo '建置和部署成功！'
             script {
                 def deploymentInfo = """
-                ✅ 部署成功通知
-                📦 專案: ${env.JOB_NAME}
-                🔢 建置號: ${env.BUILD_NUMBER}
-                👤 提交者: ${env.GIT_AUTHOR}
-                💬 提交訊息: ${env.GIT_COMMIT_MSG}
-                🌐 應用程式: http://localhost:${APP_PORT}/api/swagger-ui.html
-                ⏰ 完成時間: ${new Date()}
+                部署成功通知
+                專案: ${env.JOB_NAME}
+                建置號: ${env.BUILD_NUMBER}
+                提交者: ${env.GIT_AUTHOR}
+                提交訊息: ${env.GIT_COMMIT_MSG}
+                應用程式: http://localhost:${APP_PORT}/api/swagger-ui.html
+                完成時間: ${new Date()}
                 """
                 echo deploymentInfo
             }
         }
 
         failure {
-            echo '❌ 建置或部署失敗！'
-            // 可以發送失敗通知
+            echo '建置或部署失敗！'
             script {
                 def failureInfo = """
-                ❌ 部署失敗通知
-                📦 專案: ${env.JOB_NAME}
-                🔢 建置號: ${env.BUILD_NUMBER}
-                👤 提交者: ${env.GIT_AUTHOR}
-                💬 提交訊息: ${env.GIT_COMMIT_MSG}
-                ⏰ 失敗時間: ${new Date()}
-                🔍 請檢查建置日誌:
+                部署失敗通知
+                專案: ${env.JOB_NAME}
+                建置號: ${env.BUILD_NUMBER}
+                提交者: ${env.GIT_AUTHOR}
+                提交訊息: ${env.GIT_COMMIT_MSG}
+                失敗時間: ${new Date()}
+                請檢查建置日誌: ${env.BUILD_URL}console
+                """
+                echo failureInfo
+            }
+        }
+    }
+}
