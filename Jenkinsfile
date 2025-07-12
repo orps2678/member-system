@@ -68,13 +68,13 @@ pipeline {
                 echo '執行測試和編譯...'
                 sh '''
                     echo "清理舊的建置檔案..."
-                    mvn clean
+                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn clean
 
                     echo "執行測試..."
-                    mvn test
+                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn test
 
                     echo "編譯和打包..."
-                    mvn package -DskipTests
+                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn package -DskipTests
 
                     echo "檢查建置結果..."
                     ls -la target/
@@ -82,8 +82,8 @@ pipeline {
             }
             post {
                 always {
-                    // 保存測試報告
-                    publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                    // 保存測試報告 - 使用正確的插件名稱
+                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     // 歸檔建置產物
                     archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
                 }
