@@ -210,7 +210,7 @@ pipeline {
                     while (retryCount < maxRetries && !healthCheckPassed) {
                         try {
                             sh """
-                                curl -f http://localhost:${APP_PORT}/actuator/health
+                                curl -f http://localhost:${APP_PORT}/api/actuator/health
                             """
                             healthCheckPassed = true
                             echo "✅ 應用程式健康檢查通過！"
@@ -235,7 +235,7 @@ pipeline {
                             docker logs member-system-app --tail 50 || echo "無法獲取日誌"
 
                             echo "網路連接測試："
-                            curl -v http://localhost:${APP_PORT}/ || echo "連接失敗"
+                            curl -v http://localhost:${APP_PORT}/api/ || echo "連接失敗"
                         '''
                     }
                 }
@@ -279,8 +279,8 @@ pipeline {
                 建置號: ${env.BUILD_NUMBER}
                 提交者: ${env.GIT_AUTHOR}
                 提交訊息: ${env.GIT_COMMIT_MSG}
-                應用程式健康檢查: http://localhost:${APP_PORT}/actuator/health
-                Swagger UI: http://localhost:${APP_PORT}/swagger-ui.html
+                應用程式健康檢查: http://localhost:${APP_PORT}/api/actuator/health
+                Swagger UI: http://localhost:${APP_PORT}/api/swagger-ui.html
                 部署時間: ${new Date()}
 
                 🚀 下次推送程式碼時，系統將自動：
