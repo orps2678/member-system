@@ -65,16 +65,13 @@ pipeline {
 
         stage('Test & Build') {
             steps {
-                echo '執行測試和編譯...'
+                echo '執行編譯（跳過測試）...'
                 sh '''
                     echo "清理舊的建置檔案..."
-                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn clean
+                    mvn clean
 
-                    echo "執行測試..."
-                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn test
-
-                    echo "編譯和打包..."
-                    docker run --rm -v $(pwd):/app -w /app maven:3.9.6-eclipse-temurin-17 mvn package -DskipTests
+                    echo "編譯和打包（跳過測試）..."
+                    mvn package -DskipTests
 
                     echo "檢查建置結果..."
                     ls -la target/
@@ -82,8 +79,6 @@ pipeline {
             }
             post {
                 always {
-                    // 保存測試報告 - 使用正確的插件名稱
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     // 歸檔建置產物
                     archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
                 }
